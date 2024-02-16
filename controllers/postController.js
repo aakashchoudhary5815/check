@@ -127,10 +127,10 @@ const editPost = async (req, res, next) => {
     let updatedPost;
     const postId = req.params.id;
     let { title, category, description } = req.body;
-    if (!title || !category || !description.length < 12) {
-      return next(new HttpError("Fill in all fields", 400));
+    if (!title || !category || description.length < 12) {
+      return next(new HttpError("Fill in all fields", 422));
     }
-    if (req.files) {
+    if (!req.files) {
       updatedPost = await Post.findByIdAndUpdate(
         postId,
         { title, category, description },
@@ -139,44 +139,52 @@ const editPost = async (req, res, next) => {
     } else {
       // get old post from database
       const oldPost = await Post.findById(postId);
-      fs.unlink(
-        path.join(__dirname, "..", "uploads", oldPost.thumbnail),
-        async (err) => {
-          if (err) {
-            return next(new HttpError(err));
+      if (req.user.id == oldPost.creator) {
+        // delete old thumbnail from uploads folder
+        fs.unlink(
+          path.join(__dirname, "..", "uploads", oldPost.thumbnail),
+          async (err) => {
+            if (err) {
+              return next(new HttpError(err));
+            }
           }
+        );
+        // upload new thumbnail
+        const { thumbnail } = req.files;
+
+        // check file size
+        if (thumbnail.size > 2000000) {
+          return next(new HttpError("Image size should not exceed 2mb"));
         }
-      );
-      // Upload new thumbnail
-      const { thumbnail } = req.files;
-      // check file size
-      if (thumbnail.size > 2000000) {
-        return next(new HttpError("Image size should not exceed 2mb", 400));
+
+        fileName = thumbnail.name;
+        let splittedFileName = fileName.split(".");
+        newFileName =
+          splittedFileName[0] +
+          uuid() +
+          "." +
+          splittedFileName[splittedFileName.length - 1];
+        thumbnail.mv(
+          path.join(__dirname, "..", "uploads", newFileName),
+          async (err) => {
+            if (err) {
+              return next(new HttpError(err));
+            }
+          }
+        );
+
+        updatedPost = await Post.findByIdAndUpdate(
+          postId,
+          { title, category, description, thumbnail: newFileName },
+          { new: true }
+        );
       }
-      fileName = thumbnail.name;
-      let splittedFileName = fileName.split(".");
-      newFileName =
-        splittedFileName[0] +
-        uuid() +
-        "." +
-        splittedFileName[splittedFileName.length - 1];
-      thumbnail.mv(
-        path.join(__dirname, "..", "uploads", newFileName),
-        async (err) => {
-          if (err) {
-            return next(new HttpError(err));
-          }
-        }
-      );
-      updatedPost = await Post.findByIdAndUpdate(
-        postId,
-        { title, category, description, thumbnail: newFileName },
-        { new: true }
-      );
     }
+
     if (!updatedPost) {
       return next(new HttpError("Post update failed", 422));
     }
+
     res.status(200).json(updatedPost);
   } catch (error) {
     return next(new HttpError(error));
@@ -188,7 +196,38 @@ const editPost = async (req, res, next) => {
 // Protected
 
 const deletePost = async (req, res, next) => {
-  res.json("Delete post");
+  try {
+    const postId = req.params.id;
+    if (!postId) {
+      return next(new HttpError("Post not found", 404));
+    }
+    const post = await Post.findById(postId);
+    const fileName = post?.thumbnail;
+    if (req.user.id == post.creator) {
+      // delete post from our uploads folder
+      fs.unlink(
+        path.join(__dirname, "..", "uploads", fileName),
+        async (err) => {
+          if (err) {
+            return next(new HttpError(err));
+          } else {
+            await Post.findByIdAndDelete(postId);
+            // find user and decrease post count by 1
+            const currentUser = await User.findById(req.user.id);
+            const userPostCount = currentUser?.posts - 1;
+            await User.findByIdAndUpdate(req.user.id, { posts: userPostCount });
+          }
+        }
+      );
+    } else {
+      return next(
+        new HttpError("You are not authorized to delete this post", 401)
+      );
+    }
+    res.json(`Post with id ${postId} deleted successfully`);
+  } catch (error) {
+    return next(new HttpError(error));
+  }
 };
 
 module.exports = {
