@@ -64,7 +64,7 @@ const createPost = async (req, res, next) => {
 
 const getPosts = async (req, res, next) => {
   try {
-    const posts = await Post.find().sort({ updatedAt: -1 });
+    const posts = await Post.find().sort({ createdAt: -1 });
     res.status(200).json(posts);
   } catch (error) {
     return next(new HttpError(error));

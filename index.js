@@ -6,14 +6,28 @@ const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
 const upload = require("express-fileupload");
+const path = require("path");
 
 const app = express();
 
+// Example CORS setup in Express
+// app.use(function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "http://localhost:3000"); // Update with your React app's origin
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   next();
+// });
+
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+// app.use(cors());
 app.use(express.json({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+
 app.use(upload());
-app.use("/uploads", express.static(__dirname + "uploads"));
+// app.use("/uploads", express.static(__dirname + "uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //Routes
 
