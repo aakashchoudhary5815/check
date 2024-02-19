@@ -128,9 +128,9 @@ const changeAvatar = async (req, res, next) => {
     const { avatar } = req.files;
 
     // check file size
-    if (avatar.size > 500000) {
+    if (avatar.size > 5000000) {
       return next(
-        new HttpError("Image size is too large, should be less than 500kb", 422)
+        new HttpError("Image size is too large, should be less than 5mb", 422)
       );
     }
 
@@ -172,7 +172,7 @@ const changeAvatar = async (req, res, next) => {
 // protected
 const editUser = async (req, res, next) => {
   try {
-    const { name, email, currentPassword, newPassword, newConfirmNewPassword } =
+    const { name, email, currentPassword, newPassword, confirmNewPassword } =
       req.body;
     if (!name || !email || !currentPassword || !newPassword) {
       return next(new HttpError("All fields are required", 422));
@@ -204,7 +204,7 @@ const editUser = async (req, res, next) => {
 
     // compare new password with confirm new password
 
-    if (newPassword !== newConfirmNewPassword) {
+    if (newPassword !== confirmNewPassword) {
       return next(new HttpError("Passwords do not match", 422));
     }
 
