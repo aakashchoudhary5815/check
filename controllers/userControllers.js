@@ -158,7 +158,7 @@ const changeAvatar = async (req, res, next) => {
     const { avatar } = req.files;
 
     // check file size
-    if (avatar.size > 5000000) {
+    if (avatar.size > 500000) {
       return next(
         new HttpError("Image size is too large, should be less than 500kb", 422)
       );
@@ -209,7 +209,7 @@ const changeAvatar = async (req, res, next) => {
 const editUser = async (req, res, next) => {
   // Function to handle editing user profile
   try {
-    const { name, email, currentPassword, newPassword, confirmNewPassword } =
+    const { name, email, currentPassword, newPassword, newConfirmNewPassword } =
       req.body;
     // Validate required fields
     if (!name || !email || !currentPassword || !newPassword) {
