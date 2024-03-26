@@ -36,7 +36,7 @@ app.use(errorHandler);
 
 (async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI, { bufferCommands: false });
+    await connect(process.env.MONGO_URI, { bufferCommands: false });
     console.log("MongoDB connected successfully");
     
     app.listen(process.env.PORT || 5000, () => {
