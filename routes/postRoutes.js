@@ -15,7 +15,7 @@ const router = Router(); // Create an Express router object
 // **Post Routes:**
 
 // - Create a new post (requires authentication)
-router.post("/", authMiddleware, createPost);
+router.post("/create", authMiddleware, createPost);
 
 // - Get all posts
 router.get("/", getPosts);
