@@ -11,7 +11,7 @@ const path = require("path");
 const app = express();
 
 const corsOptions = {
-    origin: "http://localhost:3001",
+    origin: "*",
     credentials: true,
     optionsSuccessStatus: 200,
     allowedHeaders: ['Content-Type', 'Authorization'] 
