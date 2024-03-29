@@ -10,12 +10,14 @@ const path = require("path");
 
 const app = express();
 
-app.use(
-  cors({
+const corsOptions = {
+    origin: "http://localhost:3001",
     credentials: true,
-    origin: "*",
-  })
-);
+    optionsSuccessStatus: 200,
+    allowedHeaders: ['Content-Type', 'Authorization'] 
+};
+
+app.use(cors(corsOptions));
 // app.use(cors());
 app.use(express.json({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
